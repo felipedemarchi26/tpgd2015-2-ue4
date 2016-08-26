@@ -12,8 +12,9 @@ UCLASS()
 class PRIMEIROCODIGO_API APrimeiroCodigoGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
-	
+
+public:
+		APrimeiroCodigoGameMode();
 	
 	
 };

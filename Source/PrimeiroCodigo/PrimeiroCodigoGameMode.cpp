@@ -2,7 +2,12 @@
 
 #include "PrimeiroCodigo.h"
 #include "PrimeiroCodigoGameMode.h"
+#include "MyHUD.h"
 
+APrimeiroCodigoGameMode::APrimeiroCodigoGameMode() {
 
+	HUDClass = AMyHUD::StaticClass();
+
+}
 
 
