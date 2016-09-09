@@ -25,6 +25,10 @@ public:
 
 	void SetLife(int NewLife);
 	int GetLife();
+
+	FORCEINLINE int GetNewLife() const { return Life; }
+	FORCEINLINE void AMyCharacter::SetNewLife(int NewLife) { Life = NewLife; }
+
 	void OnDeath();
 
 private:
