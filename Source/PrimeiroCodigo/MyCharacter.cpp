@@ -66,6 +66,9 @@ void AMyCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 }
 
 void AMyCharacter::MoveForward(float Value) {
+	if (false) {
+		UE_LOG(LogTemp, Warning, TEXT("Vai conflitar!"));
+	}
 	FVector Forward(0, 1, 0);
 	AddMovementInput(Forward, Value);
 }
