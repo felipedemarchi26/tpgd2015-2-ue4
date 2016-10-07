@@ -15,19 +15,40 @@ AMyCharacter::AMyCharacter()
 
 	GetCapsuleComponent()->bGenerateOverlapEvents = true;
 
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetCollisionProfileName("NoCollision");
-	MeshComp->AttachTo(GetCapsuleComponent());
+	//MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	//MeshComp->SetCollisionProfileName("NoCollision");
+	//MeshComp->AttachTo(GetCapsuleComponent());
+
+	ConstructorHelpers::FObjectFinder<USkeletalMesh>
+		SkeletalMesh(TEXT("SkeletalMesh'/Game/AnimStarterPack/UE4_Mannequin/Mesh/SK_Mannequin.SK_Mannequin'"));
+	if (SkeletalMesh.Succeeded()) {
+		GetMesh()->SetSkeletalMesh(SkeletalMesh.Object);
+	}
+	GetMesh()->SetWorldLocation(FVector(0.0f, 0.0f, -80.0f));
+	GetMesh()->SetWorldScale3D(FVector(0.9f, 0.9f, 0.9f));
+	GetMesh()->SetWorldRotation(FRotator(0.0f, -90.0f, 0.0f));
+	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	ConstructorHelpers::FObjectFinder<UAnimBlueprint>
+		AnimObj(TEXT("AnimBlueprint'/Game/Blueprints/WalkBP.WalkBP'"));
+	if (AnimObj.Succeeded()) {
+		GetMesh()->SetAnimInstanceClass(AnimObj.Object->GetAnimBlueprintGeneratedClass());
+	}
+
+	ConstructorHelpers::FObjectFinder<UAnimSequence>
+		AnimJumpLoad(TEXT("AnimSequence'/Game/AnimStarterPack/Jump_From_Stand.Jump_From_Stand'"));
+	if (AnimJumpLoad.Succeeded()) {
+		JumpAnim = AnimJumpLoad.Object;
+	}
 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->AttachTo(RootComponent);
 	PlayerCamera->AttachTo(CameraBoom);
 
-	ArrowComp = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComp"));
-	ArrowComp->SetHiddenInGame(false);
-	ArrowComp->ArrowSize = 2.0f;
-	ArrowComp->AttachTo(MeshComp);
+	//ArrowComp = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComp"));
+	//ArrowComp->SetHiddenInGame(false);
+	//ArrowComp->ArrowSize = 2.0f;
+	//ArrowComp->AttachTo(GetMesh());
 
 	CollectCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollectCollision"));
 	CollectCollisionComp->InitSphereRadius(200.0f);
@@ -35,7 +56,7 @@ AMyCharacter::AMyCharacter()
 
 	GetCharacterMovement()->MaxWalkSpeed = 400;
 
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
+	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
 // Called when the game starts or when spawned
@@ -52,6 +73,11 @@ void AMyCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+	if (GetMesh()->GetAnimationMode() == EAnimationMode::AnimationSingleNode
+		&& GetCharacterMovement()->IsMovingOnGround()) {
+		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	}
+
 }
 
 // Called to bind functionality to input
@@ -61,9 +87,9 @@ void AMyCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 	
 	InputComponent->BindAxis("MoveForward", this, &AMyCharacter::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AMyCharacter::MoveRight);
-	InputComponent->BindAxis("Turn", this, &AMyCharacter::Turn);
+	InputComponent->BindAxis("Turn", this, &ACharacter::AddControllerYawInput);
 
-	InputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	InputComponent->BindAction("Jump", IE_Pressed, this, &AMyCharacter::Jump);
 	InputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	InputComponent->BindAction("Run", IE_Pressed, this, &AMyCharacter::StartRun);
 	InputComponent->BindAction("Run", IE_Released, this, &AMyCharacter::StopRun);
@@ -73,16 +99,28 @@ void AMyCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 }
 
 void AMyCharacter::MoveForward(float Value) {
-	if (false) {
-		UE_LOG(LogTemp, Warning, TEXT("Vai conflitar!"));
+	//FVector Forward(0, 1, 0);
+	//AddMovementInput(Forward, Value);
+
+	if (Controller != nullptr && Value != 0) {
+		FRotator Rotation = Controller->GetControlRotation();
+		if (GetCharacterMovement()->IsMovingOnGround()) {
+			Rotation.Pitch = 0.0f;
+		}
+		const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
+		AddMovementInput(Direction, Value);
 	}
-	FVector Forward(0, 1, 0);
-	AddMovementInput(Forward, Value);
 }
 
 void AMyCharacter::MoveRight(float Value) {
-	FVector Right(1, 0, 0);
-	AddMovementInput(Right, Value);
+	//FVector Right(1, 0, 0);
+	//AddMovementInput(Right, Value);
+
+	if (Controller != nullptr && Value != 0.0f) {
+		FRotator Rotation = Controller->GetControlRotation();
+		const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
+		AddMovementInput(Direction, Value);
+	}
 }
 
 void AMyCharacter::StartRun() {
@@ -113,7 +151,7 @@ void AMyCharacter::DropProjectile() {
 	FActorSpawnParameters SpawnParameters;
 	UWorld* World = GetWorld();
 	if (World != nullptr) {
-		FRotator Rotation = MeshComp->GetComponentRotation();
+		FRotator Rotation = GetMesh()->GetComponentRotation();
 		AProjectileActor* Proj = World->SpawnActor<AProjectileActor>
 			(GetActorLocation(), Rotation, 
 				SpawnParameters);
@@ -125,9 +163,9 @@ void AMyCharacter::DropProjectile() {
 
 void AMyCharacter::Turn(float Value) {
 	//AddControllerYawInput(Value);
-	FRotator NewRotation = MeshComp->GetComponentRotation();
+	FRotator NewRotation = GetMesh()->GetComponentRotation();
 	NewRotation.Yaw += Value;
-	MeshComp->SetWorldRotation(NewRotation);
+	GetMesh()->SetWorldRotation(NewRotation);
 }
 
 void AMyCharacter::OnCollect() {
@@ -144,5 +182,13 @@ void AMyCharacter::OnCollect() {
 			AAlavanca* Alavanca = Cast<AAlavanca>(AtoresColetados[i]);
 			Alavanca->OnPressed();
 		}
+	}
+}
+
+void AMyCharacter::Jump() {
+	Super::Jump();
+
+	if (JumpAnim != nullptr) {
+		GetMesh()->PlayAnimation(JumpAnim, false);
 	}
 }

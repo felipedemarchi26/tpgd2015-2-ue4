@@ -23,6 +23,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
+	virtual void Jump() override;
+
 	void SetLife(int NewLife);
 	int GetLife();
 
@@ -43,6 +45,8 @@ private:
 		UArrowComponent* ArrowComp;
 	UPROPERTY(EditAnywhere)
 		int Life = 100;
+	UPROPERTY(EditAnywhere)
+		UAnimSequence* JumpAnim;
 
 	USphereComponent* CollectCollisionComp;
 	TArray<class AItem*> Inventory;

@@ -3,10 +3,13 @@
 #include "PrimeiroCodigo.h"
 #include "PrimeiroCodigoGameMode.h"
 #include "MyHUD.h"
+#include "MyCharacter.h"
 
 APrimeiroCodigoGameMode::APrimeiroCodigoGameMode() {
 
-	HUDClass = AMyHUD::StaticClass();
+	//HUDClass = AMyHUD::StaticClass();
+
+	DefaultPawnClass = AMyCharacter::StaticClass();
 
 }
 
