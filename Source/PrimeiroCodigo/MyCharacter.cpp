@@ -5,6 +5,13 @@
 #include "ProjectileActor.h"
 #include "Item.h"
 #include "Alavanca.h"
+#include "Runtime/UMG/Public/UMG.h"
+#include "Runtime/UMG/Public/UMGStyle.h"
+#include "Runtime/UMG/Public/IUMGModule.h"
+#include "Runtime/UMG/Public/Slate/SObjectWidget.h"
+#include "Runtime/UMG/Public/Blueprint/UserWidget.h"
+#include "Runtime/UMG/Public/Blueprint/WidgetBlueprintLibrary.h"
+#include "Blueprint/UserWidget.h"
 
 
 // Sets default values
@@ -56,6 +63,12 @@ AMyCharacter::AMyCharacter()
 
 	GetCharacterMovement()->MaxWalkSpeed = 400;
 
+	ConstructorHelpers::FClassFinder<UUserWidget>
+		Widget(TEXT("WidgetBlueprint'/Game/Blueprints/Pause.Pause_C'"));
+	if (Widget.Succeeded()) {
+		UserWidget = Widget.Class;
+	}
+
 	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
@@ -96,6 +109,8 @@ void AMyCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 
 	InputComponent->BindAction("Drop", IE_Pressed, this, &AMyCharacter::DropProjectile);
 	InputComponent->BindAction("Collect", IE_Pressed, this, &AMyCharacter::OnCollect);
+
+	InputComponent->BindAction("Pause", IE_Pressed, this, &AMyCharacter::Pause);
 }
 
 void AMyCharacter::MoveForward(float Value) {
@@ -190,5 +205,24 @@ void AMyCharacter::Jump() {
 
 	if (JumpAnim != nullptr) {
 		GetMesh()->PlayAnimation(JumpAnim, false);
+	}
+}
+
+void AMyCharacter::Pause() {
+	UWorld* World = GetWorld();
+	if (World != nullptr) {
+		APlayerController* PlayerController =
+			UGameplayStatics::GetPlayerController(World, 0);
+		if (PlayerController != nullptr && UserWidget != NULL) {
+			PlayerController->SetPause(true);
+			UUserWidget* UserW =
+				UWidgetBlueprintLibrary::Create
+				(World, UserWidget, PlayerController);
+			if (UserW != nullptr) {
+				UserW->AddToViewport();
+				PlayerController->bShowMouseCursor = true;
+			}
+
+		}
 	}
 }
