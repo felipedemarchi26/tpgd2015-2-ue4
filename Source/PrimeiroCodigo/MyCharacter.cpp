@@ -69,6 +69,17 @@ AMyCharacter::AMyCharacter()
 		UserWidget = Widget.Class;
 	}
 
+	ConstructorHelpers::FObjectFinder<USoundCue>
+		SoundCue(TEXT("SoundCue'/Game/Audios/shoot_Cue.shoot_Cue'"));
+	if (SoundCue.Succeeded()) {
+		FireSound = SoundCue.Object;
+	}
+
+	AudioComp = CreateDefaultSubobject<UAudioComponent>
+		(TEXT("AudioComp"));
+	AudioComp->bAutoActivate = false;
+	AudioComp->AttachTo(GetMesh());
+
 	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
@@ -170,6 +181,8 @@ void AMyCharacter::DropProjectile() {
 		AProjectileActor* Proj = World->SpawnActor<AProjectileActor>
 			(GetActorLocation(), Rotation, 
 				SpawnParameters);
+		AudioComp->SetSound(FireSound);
+		AudioComp->Play();
 		if (Proj != nullptr) {
 			UE_LOG(LogTemp, Warning, TEXT("Spawn OK!"));
 		}

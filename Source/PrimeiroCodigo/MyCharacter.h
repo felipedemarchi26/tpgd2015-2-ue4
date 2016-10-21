@@ -52,6 +52,9 @@ private:
 	TArray<class AItem*> Inventory;
 	TSubclassOf<class UUserWidget> UserWidget;
 
+	USoundCue* FireSound;
+	UAudioComponent* AudioComp;
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void StartRun();
