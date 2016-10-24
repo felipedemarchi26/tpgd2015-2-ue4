@@ -31,6 +31,8 @@ public:
 	FORCEINLINE int GetNewLife() const { return Life; }
 	FORCEINLINE void AMyCharacter::SetNewLife(int NewLife) { Life = NewLife; }
 	FORCEINLINE TArray<class AItem*> GetInventory() const { return Inventory; }
+	FORCEINLINE int GetPontuacao() const { return Pontuacao; }
+	FORCEINLINE void AMyCharacter::SetPontuacao(int NewPontuacao) { Pontuacao = NewPontuacao; }
 
 	void OnDeath();
 
@@ -47,6 +49,10 @@ private:
 		int Life = 100;
 	UPROPERTY(EditAnywhere)
 		UAnimSequence* JumpAnim;
+	UPROPERTY(EditAnywhere)
+		int Pontuacao;
+
+	void ShowPontuacao();
 
 	USphereComponent* CollectCollisionComp;
 	TArray<class AItem*> Inventory;
@@ -63,5 +69,10 @@ private:
 	void Turn(float Value);
 	void OnCollect();
 	void Pause();
+
+	UFUNCTION(Reliable, Server, WithValidation)
+	void DropProjectileServer();
+	void DropProjectileServer_Implementation();
+	bool DropProjectileServer_Validate();
 	
 };

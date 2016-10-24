@@ -42,6 +42,8 @@ AProjectileActor::AProjectileActor()
 	ProjectileMovement->MaxSpeed = 3000.0f;
 	
 	InitialLifeSpan = 5.0f;
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned

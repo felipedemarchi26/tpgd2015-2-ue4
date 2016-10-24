@@ -80,6 +80,9 @@ AMyCharacter::AMyCharacter()
 	AudioComp->bAutoActivate = false;
 	AudioComp->AttachTo(GetMesh());
 
+	bReplicates = true;
+	bReplicateMovement = true;
+
 	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
@@ -122,6 +125,8 @@ void AMyCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 	InputComponent->BindAction("Collect", IE_Pressed, this, &AMyCharacter::OnCollect);
 
 	InputComponent->BindAction("Pause", IE_Pressed, this, &AMyCharacter::Pause);
+	InputComponent->BindAction("Show", IE_Pressed, this, &AMyCharacter::ShowPontuacao);
+
 }
 
 void AMyCharacter::MoveForward(float Value) {
@@ -170,22 +175,6 @@ void AMyCharacter::OnDeath() {
 		FVector InitialLocation(-60.0f, 30.0f, 350.0f);
 		Life = 100;
 		SetActorLocation(InitialLocation);
-	}
-}
-
-void AMyCharacter::DropProjectile() {
-	FActorSpawnParameters SpawnParameters;
-	UWorld* World = GetWorld();
-	if (World != nullptr) {
-		FRotator Rotation = GetMesh()->GetComponentRotation();
-		AProjectileActor* Proj = World->SpawnActor<AProjectileActor>
-			(GetActorLocation(), Rotation, 
-				SpawnParameters);
-		AudioComp->SetSound(FireSound);
-		AudioComp->Play();
-		if (Proj != nullptr) {
-			UE_LOG(LogTemp, Warning, TEXT("Spawn OK!"));
-		}
 	}
 }
 
@@ -238,4 +227,34 @@ void AMyCharacter::Pause() {
 
 		}
 	}
+}
+
+void AMyCharacter::DropProjectile() {
+	//if (Role == ROLE_Authority) {
+	DropProjectileServer();
+	//}
+}
+
+void AMyCharacter::DropProjectileServer_Implementation() {
+	FActorSpawnParameters SpawnParameters;
+	UWorld* World = GetWorld();
+	if (World != nullptr) {
+		FRotator Rotation = GetMesh()->GetComponentRotation();
+		AProjectileActor* Proj = World->SpawnActor<AProjectileActor>
+			(GetActorLocation(), Rotation,
+				SpawnParameters);
+		AudioComp->SetSound(FireSound);
+		AudioComp->Play();
+		if (Proj != nullptr) {
+			UE_LOG(LogTemp, Warning, TEXT("Spawn OK!"));
+		}
+	}
+}
+
+bool AMyCharacter::DropProjectileServer_Validate() {
+	return true;
+}
+
+void AMyCharacter::ShowPontuacao() {
+	UE_LOG(LogTemp, Warning, TEXT("%d"), Pontuacao);
 }
