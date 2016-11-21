@@ -9,8 +9,10 @@ APrimeiroCodigoGameMode::APrimeiroCodigoGameMode() {
 
 	//HUDClass = AMyHUD::StaticClass();
 
-	DefaultPawnClass = AMyCharacter::StaticClass();
-
+	//DefaultPawnClass = AMyCharacter::StaticClass();
+	DefaultPawnClass = NULL;
 }
+
+
 
 

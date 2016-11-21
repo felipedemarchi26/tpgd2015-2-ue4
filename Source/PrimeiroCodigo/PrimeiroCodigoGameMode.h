@@ -16,5 +16,4 @@ class PRIMEIROCODIGO_API APrimeiroCodigoGameMode : public AGameMode
 public:
 		APrimeiroCodigoGameMode();
 	
-	
 };
